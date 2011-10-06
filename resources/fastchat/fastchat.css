@@ -1,0 +1,121 @@
+#x-fastchat {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    padding: 0;
+    margin: 0 3%;
+    width: 94%;
+    border: 1px solid #3B5998;
+    border-bottom: none;
+    z-index: 9999999;
+    background-color: #3B5998;
+    background-color: #eee;
+}
+
+#x-fastchat.x-fastchat-closed {
+    height: 20px;
+    width: 50px;
+    margin: 0 94%;
+}
+
+#x-fastchat #x-fastchat-top {
+    width: 100%;
+    background-color: #3B5998;
+    height: 20px;
+}
+
+#x-fastchat button {
+    float: right;
+    bordeR: none;
+    padding: 0;
+    margin: 0;
+    width: 20px;
+    height: 19px;
+    font-family: Verdana;
+    color: #888;
+    font-size: 8px;
+}
+
+#x-fastchat.x-fastchat-closed button {
+    margin-top: 0;
+    width: 50px;
+}
+
+#x-fastchat ul#x-fastchat-chat {
+    float: left;
+    text-align: left;
+    list-style: none;
+    height: 150px;
+    margin: 0;
+    padding: 0;
+    width: 80%;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    background-color: #FFF;
+}
+
+#x-fastchat.x-fastchat-closed ul#x-fastchat-chat {
+    display: none;
+}
+
+#x-fastchat ul#x-fastchat-chat li {
+    font-size: 12px;
+    font-family: Verdana;
+    color: #333;
+    padding-left: 5px;
+    margin-top: 4px;
+}
+
+#x-fastchat ul#x-fastchat-chat li .x-fastchat-from {
+    color: #666;
+    font-style: italic;
+    text-transform: capitalize;
+}
+
+#x-fastchat ul#x-fastchat-users {
+    float: right;
+    margin: 0;
+    padding: 0;
+    width: 20%;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    background-color: #FFF;
+    height: 150px;
+}
+
+#x-fastchat.x-fastchat-closed ul#x-fastchat-users {
+    display: none;
+}
+
+#x-fastchat ul#x-fastchat-users li {
+    font-size: 12px;
+    font-family: Verdana;
+    color: #666;
+    padding-left: 12px;
+    margin-top: 4px;
+    font-style: italic;
+    text-transform: capitalize;
+}
+
+#x-fastchat ul#x-fastchat-users li:first-child {
+    font-style: none;
+    font-weight: bolder;
+    padding-left: 6px;
+}
+
+#x-fastchat input {
+    width: 78%;
+    border: 1px solid #3B5998;
+    margin: 0;
+    margin-top: 4px;
+    margin-left: 4px;
+    margin-bottom: 4px;
+    padding: 5px;
+    font-family: Verdana;
+    font-size: 12px;
+    color: #666;
+}
+
+#x-fastchat.x-fastchat-closed input {
+    display: none;
+}
