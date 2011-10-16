@@ -90,17 +90,20 @@
 #x-fastchat ul#x-fastchat-users li {
     font-size: 12px;
     font-family: Verdana;
-    color: #666;
+    color: #3B5998;
     padding-left: 12px;
     margin-top: 4px;
     font-style: italic;
     text-transform: capitalize;
+    cursor: pointer;
 }
 
 #x-fastchat ul#x-fastchat-users li:first-child {
+    color: #666;
     font-style: none;
     font-weight: bolder;
     padding-left: 6px;
+    border: none;
 }
 
 #x-fastchat input {

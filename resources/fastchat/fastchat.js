@@ -56,6 +56,9 @@ var fastchat = (function() {
                     var line = document.createElement("li");
                     line.innerHTML = msg.users[i];
                     chat.root.childNodes[2].appendChild(line);
+                    line.addEventListener("click",function(e){
+                        chat.root.lastChild.setAttribute("value","@"+ e.target.innerHTML);
+                    }, false);
                 }
             } else {
                 chat.ws.send(JSON.stringify({type:"command", command: "users"}));
