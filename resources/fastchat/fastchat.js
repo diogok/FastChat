@@ -3,6 +3,7 @@ var fastchat = (function() {
         ws: null,
         root: null,
         loaded: false,
+        connected: false,
         opts: {
             server: "67.23.230.58:8081",
             room: location.host,
@@ -26,6 +27,11 @@ var fastchat = (function() {
                 chat.scroll();
             } else if(msg.type == "users") {
                 chat.onlineUsers(msg);
+            }
+            if(!chat.connected) {
+                chat.onlineUsers();
+                setInterval(chat.onlineUsers,5000);
+                chat.connected = true;
             }
         },
         onOpen: function(e) {
@@ -104,7 +110,6 @@ var fastchat = (function() {
             chat.connect();
             chat.toggle();
             chat.loaded = true;
-            setInterval(chat.onlineUsers,5000);
         }
     }
 
