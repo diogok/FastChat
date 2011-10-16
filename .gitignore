@@ -1,4 +1,6 @@
 pom.xml
+*.swp
+*.bkp
 *jar
 /lib/
 /classes/
