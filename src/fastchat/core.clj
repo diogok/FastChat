@@ -9,16 +9,13 @@
     (defn handler [user fun ch message]
       "Handle msgs on channel"
       (let [msg (read-json message)]
-        (if (= (msg :type) "leave")
-          (if (= (msg :user) user) 
-            (.unsubscribe ch))
+        (if (= (msg :type) "leave") (.unsubscribe ch)
           (fun msg)))) 
 
     (defn enter [db room user fun]
      "User join room on channels, fun will be called on new messages"
-      (let [ch [(str "channel:" room) (str "channel:" room ":" user)]
-            hn (partial handler user fun)]
-        (future (redis/subscribe (redis/init) ch hn)))
+      (let [ch [(str "channel:" room) (str "channel:" room ":" user)]]
+        (future (redis/subscribe (redis/init) ch (partial handler user fun))))
       (redis/sadd db (str "users:" room) user))
 
     (defn do-post [db room msg]
@@ -33,10 +30,8 @@
                      :timestamp (/ ( System/currentTimeMillis) 1000)}] 
       (if (.startsWith msg "@")
        (let [user2 (.substring msg 1 (.indexOf msg " "))]
-        (do-post db (str room ":" user)
-            (assoc message :type "private")) 
-        (do-post db (str room ":" user2) 
-            (assoc message :type "private")))
+        (do-post db (str room ":" user) (assoc message :type "private")) 
+        (do-post db (str room ":" user2) (assoc message :type "private")))
        (do-post db room message))))
 
     (defn online-users [db room]
@@ -45,6 +40,6 @@
 
     (defn leave [db room user]
      "Makes user leave room"
-      (redis/publish db (str "channel:" room ":" user) (json-str {:type "leave" :user user})) 
+     (redis/publish db (str "channel:" room ":" user) (json-str {:type "leave"})) 
      (redis/srem db (str "users:" room) user))
 
