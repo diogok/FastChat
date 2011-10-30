@@ -7,6 +7,12 @@
 
     (def mkchannels chat/channels) 
 
+    (defn connect [channels users room user conn]
+     "Connect user to room at channels using connection"
+     (swap! users assoc conn {:user user :room room})
+     (chat/enter channels room user (fn [msg] (.send conn (json-str msg))))
+     (chat/post channels room "system" (str "Hello, " user ".")))
+
     (defn post [channels users conn message]
      "Post message from user to room at channels"
      (let [user (get-in @users [conn :user])
@@ -21,11 +27,12 @@
       (chat/do-post channels (str room ":" user)
        {:type "users" :users (chat/online-users channels room)}))))
 
-    (defn connect [channels users room user conn]
-     "Connect user to room at channels using connection"
-     (swap! users assoc conn {:user user :room room})
-     (chat/enter channels room user (fn [msg] (.send conn (json-str msg))))
-     (chat/post channels room "system" (str "Hello, " user ".")))
+    (defn leave [channels users conn]
+     "User for conn leaves the room"
+     (let [user (get-in @users [conn :user])
+           room (get-in @users [conn :room])]
+       (chat/leave channels room user)
+       (chat/post channels room "system" (str "Bye, " user ".")))) 
 
     (defn message [channels users conn j]
      "Parse message j and delegates"
@@ -36,13 +43,6 @@
          (post channels users conn (msg :message)))
         (if (= (msg :type) "command")
          (command channels users conn msg))))
-
-    (defn leave [channels users conn]
-     "User for conn leaves the room"
-     (let [user (get-in @users [conn :user])
-           room (get-in @users [conn :room])]
-       (chat/leave channels room user)
-       (chat/post channels room "system" (str "Bye, " user ".")))) 
 
     (defn handler [channels users] 
      "Create proper Websocket handler for channels"

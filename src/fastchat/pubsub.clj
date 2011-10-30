@@ -4,7 +4,7 @@
      "Create channels ref" 
      (ref {}))
 
-    (defn notify [listeners message] 
+    (defn notify! [listeners message] 
      "Notifies listeners of message"
      (dorun (for [listener listeners]
              (future (listener message))))) 
@@ -13,7 +13,7 @@
      "Send a message to channel at channels"
      (if (nil? (get @channels channel))
        (dosync (commute channels assoc channel (ref []))))
-     (notify @(get @channels channel) message))
+     (notify! @(get @channels channel) message))
 
     (defn listen! [channels channel listener]
      "Add a listener on channel of channels"

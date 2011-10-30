@@ -6,7 +6,7 @@
      {:channels (mkchannels) :rooms (atom {})}) 
 
     (defn enter [channels room user fun]
-     "User join room on channels, fun will be call on new message"
+     "User join room on channels, fun will be called on new messages"
      (if (nil? (get @(channels :rooms) room))
       (swap! (channels :rooms) assoc room (atom {}))) 
      (swap! (get @(channels :rooms) room) 
