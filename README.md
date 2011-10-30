@@ -45,7 +45,7 @@ The "open" option defines if the chat window will start opened or closed. Defaul
     
 ## Roll your own
 
-You can download current "jar" of the fastchat to run on your server, all you need is Java 6 or greater(I guess).
+You can download current "jar" of the fastchat to run on your server, all you need is Java 6 or greater(I guess) and redis.
 
 To run it just invoke the jar passing the port to bind:
 
