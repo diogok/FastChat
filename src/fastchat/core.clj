@@ -1,24 +1,31 @@
 (ns fastchat.core
- (:use fastchat.pubsub))
+ (:require [clj-redis.client :as redis]) 
+ (:use [clojure.data.json :only (json-str read-json)]))
 
     (defn channels [] 
      "Create the pubsub channels"
-     {:channels (mkchannels) :rooms (atom {})}) 
+     (redis/init)) 
 
-    (defn enter [channels room user fun]
+    (defn handler [user fun ch message]
+      "Handle msgs on channel"
+      (let [msg (read-json message)]
+        (if (= (msg :type) "leave")
+          (if (= (msg :user) user) 
+            (.unsubscribe ch))
+          (fun msg)))) 
+
+    (defn enter [db room user fun]
      "User join room on channels, fun will be called on new messages"
-     (if (nil? (get @(channels :rooms) room))
-      (swap! (channels :rooms) assoc room (atom {}))) 
-     (swap! (get @(channels :rooms) room) 
-      assoc user {:fun fun :user user :room room}) 
-     (listen! (channels :channels) room fun) 
-     (listen! (channels :channels) (str room ":" user) fun)) 
+      (let [ch [(str "channel:" room) (str "channel:" room ":" user)]
+            hn (partial handler user fun)]
+        (future (redis/subscribe (redis/init) ch hn)))
+      (redis/sadd db (str "users:" room) user))
 
-    (defn do-post [channels room msg]
-     "Raw post"
-     (send! (channels :channels) room msg)) 
+    (defn do-post [db room msg]
+      "Raw post"
+      (redis/publish db (str "channel:" room) (json-str msg))) 
 
-    (defn post [channels room user msg]
+    (defn post [db room user msg]
      "Post msg from user at room in channels"
       (let [message {:from user
                      :type "message"
@@ -26,20 +33,18 @@
                      :timestamp (/ ( System/currentTimeMillis) 1000)}] 
       (if (.startsWith msg "@")
        (let [user2 (.substring msg 1 (.indexOf msg " "))]
-        (do-post channels (str room ":" user )
+        (do-post db (str room ":" user)
             (assoc message :type "private")) 
-        (do-post channels (str room ":" user2) 
+        (do-post db (str room ":" user2) 
             (assoc message :type "private")))
-       (do-post channels  room message))))
+       (do-post db room message))))
 
-    (defn online-users [channels room]
+    (defn online-users [db room]
      "Return users online on room"
-     (keys @(get @(channels :rooms) room))) 
+      (redis/smembers db (str "users:" room)))
 
-    (defn leave [channels room user]
+    (defn leave [db room user]
      "Makes user leave room"
-     (let [fun (get-in @(get @(channels :rooms) room) [user :fun])] 
-      (swap! (get @(channels :rooms) room) dissoc user) 
-      (leave! (channels :channels) room fun) 
-      (leave! (channels :channels) (str room ":" user) fun)))
+      (redis/publish db (str "channel:" room ":" user) (json-str {:type "leave" :user user})) 
+     (redis/srem db (str "users:" room) user))
 
