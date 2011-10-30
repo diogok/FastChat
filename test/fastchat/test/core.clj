@@ -1,6 +1,6 @@
 (ns fastchat.test.core
  (:use [fastchat.core])
- (:use [clojure.test]))
+ (:use [lazytest.deftest]))
 
     (deftest corecore
      (let [channels (channels) , room "123"

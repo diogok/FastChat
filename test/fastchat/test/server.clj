@@ -2,7 +2,7 @@
   (:import [org.webbitserver WebSocketConnection]) 
   (:use [clojure.data.json :only ( json-str read-json )] ) 
   (:use [fastchat.server])
-  (:use [clojure.test]))
+  (:use [lazytest.deftest]))
 
     (defn mkconn [msgs user]
      (proxy [WebSocketConnection] []

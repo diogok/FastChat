@@ -1,6 +1,6 @@
 (ns fastchat.test.pubsub
   (:use [fastchat.pubsub])
-  (:use [clojure.test]))
+  (:use [lazytest.deftest]))
 
     (deftest pubsub-listen
      (let [channels (mkchannels) 
