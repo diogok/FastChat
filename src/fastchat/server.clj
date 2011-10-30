@@ -10,8 +10,8 @@
     (defn connect [channels users room user conn]
      "Connect user to room at channels using connection"
      (swap! users assoc conn {:user user :room room})
-     (chat/enter channels room user (fn [msg] (.send conn (json-str msg))))
-     (chat/post channels room "system" (str "Hello, " user ".")))
+     (chat/enter channels room user 
+      (fn [msg] (.send conn (json-str msg)))))
 
     (defn post [channels users conn message]
      "Post message from user to room at channels"
