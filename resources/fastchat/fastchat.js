@@ -65,7 +65,12 @@ var fastchat = (function() {
             }
         },
         connect: function() {
-            var ws = new WebSocket("ws://"+ chat.opts.server +"/chat");
+            var ws ;
+            if(typeof MozWebSocket == "function") {
+                ws = new MozWebSocket("ws://"+ chat.opts.server +"/chat");
+            } else if (typeof WebSocket == "function") {
+                ws = new WebSocket("ws://"+ chat.opts.server +"/chat");
+            }
             ws.onopen = chat.onOpen;
             ws.onmessage = chat.onMessage;
             ws.onclose = chat.onClose;
