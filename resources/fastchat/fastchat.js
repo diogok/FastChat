@@ -18,7 +18,14 @@ var fastchat = (function() {
             field.value = "";
         },
         onMessage: function(e) {
-            if(e.data == "ok" || e.data == "bye") return ;
+            if(e.data == "ok" || e.data == "bye") {
+                if(e.data == "ok" && !chat.connected) {
+                    chat.onlineUsers();
+                    setInterval(chat.onlineUsers,5000);
+                    chat.connected = true;
+                }
+                return;
+            }            
             var msg = JSON.parse(e.data);
             if(msg.type == "message" || msg.type == "private") {
                 var line = document.createElement("li");
@@ -27,11 +34,6 @@ var fastchat = (function() {
                 chat.scroll();
             } else if(msg.type == "users") {
                 chat.onlineUsers(msg);
-            }
-            if(!chat.connected) {
-                chat.onlineUsers();
-                setInterval(chat.onlineUsers,5000);
-                chat.connected = true;
             }
         },
         onOpen: function(e) {
@@ -52,13 +54,15 @@ var fastchat = (function() {
                 var line = document.createElement("li");
                 line.innerHTML = "Online";
                 chat.root.childNodes[2].appendChild(line);
-                for(var i =0;i<msg.users.length;i++) {
-                    var line = document.createElement("li");
-                    line.innerHTML = msg.users[i];
-                    chat.root.childNodes[2].appendChild(line);
-                    line.addEventListener("click",function(e){
-                        chat.root.lastChild.setAttribute("value","@"+ e.target.innerHTML);
-                    }, false);
+                if(msg.users != null) {
+                    for(var i =0;i<msg.users.length;i++) {
+                        var line = document.createElement("li");
+                        line.innerHTML = msg.users[i];
+                        chat.root.childNodes[2].appendChild(line);
+                        line.addEventListener("click",function(e){
+                            chat.root.lastChild.value="@"+ e.target.innerHTML+" ";
+                        }, false);
+                    }
                 }
             } else {
                 chat.ws.send(JSON.stringify({type:"command", command: "users"}));
@@ -120,14 +124,6 @@ var fastchat = (function() {
             chat.loaded = true;
         }
     }
-
-    /*
-    if(window.addEventListener) {
-        window.addEventListener('DOMContentLoaded', chat.init,false);
-    } else if(window.attachEvent) {
-        window.attachEvent('onreadystatechange', chat.init);
-    }
-    */
 
     return function(opts) {
         for(var k in opts) {
