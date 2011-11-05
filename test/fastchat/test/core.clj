@@ -3,19 +3,18 @@
  (:use [lazytest.deftest]))
 
     (deftest corecore
-     (let [channels (channels) , room "123"
+     (let [channels (channels) 
+           room "123"
            user0 "diogok"
            msgs0 (atom [])
            user1 "gislene"
            msgs1 (atom [])
            user2 "girlaine"
            msgs2 (atom []) ]
-      (enter channels room user0
-       (fn [msg] (swap! msgs0 conj (msg :message))))
-      (enter channels room user1
-       (fn [msg] (swap! msgs1 conj (msg :message))))
-      (enter channels room user2
-       (fn [msg] (swap! msgs2 conj (msg :message))))
+      (enter channels room user0 (fn [msg] (swap! msgs0 conj (msg :message))))
+      (enter channels room user1 (fn [msg] (swap! msgs1 conj (msg :message))))
+      (enter channels room user2 (fn [msg] (swap! msgs2 conj (msg :message))))
+      (Thread/sleep 500) 
       (post channels room user0 "hello") 
       (Thread/sleep 250) 
       (is (= ["hello"] @msgs1) ) 
@@ -26,6 +25,7 @@
       (is (= ["hello" "@diogok hello you!"] @msgs1 ) ) 
       (is (= ["hello"] @msgs2)) 
       (leave channels room user1) 
+      (Thread/sleep 250) 
       (post channels room user0 "Yoh!") 
       (Thread/sleep 250) 
       (is (= ["hello" "@diogok hello you!" "Yoh!"] @msgs0)) 
