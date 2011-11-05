@@ -11,7 +11,8 @@
      "Connect user to room at channels using connection"
      (swap! users assoc conn {:user user :room room})
      (chat/enter channels room user 
-      (fn [msg] (.send conn (json-str msg)))))
+      (fn [msg] (.send conn (json-str msg))))
+     (.send conn "ok"))
 
     (defn post [channels users conn message]
      "Post message from user to room at channels"
@@ -32,7 +33,7 @@
      (let [user (get-in @users [conn :user])
            room (get-in @users [conn :room])]
        (chat/leave channels room user)
-       (chat/post channels room "system" (str "Bye, " user ".")))) 
+       (.send conn "bye")))
 
     (defn message [channels users conn j]
      "Parse message j and delegates"

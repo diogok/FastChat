@@ -8,7 +8,8 @@
      (proxy [WebSocketConnection] []
       (send [s] 
        (swap! msgs 
-        (fn [msgs] (assoc msgs user (conj (get msgs user) (read-json s)))))
+        (fn [msgs] (if (or (= s "ok" ) (= s "bye")) msgs 
+                     (assoc msgs user (conj (get msgs user) (read-json s))) )))
        this))) 
 
     (deftest wserver
@@ -37,7 +38,7 @@
        (post channels users conn1 "@gislene love you") 
        (Thread/sleep 250) 
        (is (= (list "Hello, friends!" "@gislene love you") (map :message (get @msgs "diogok")))) 
-       (is (= (list "Hello, friends!" "@gislene love you") (map :message (get @msgs "gislene") ))) 
+       (is (= (list "Hello, friends!" "@gislene love you") (map :message (get @msgs "gislene"))))
        (is (= (list "Hello, friends!") (map :message (get @msgs "girlaine") ))) 
        (is (= (list) (map :message (get @msgs "other") ))) 
        (is (= (list "diogok" "diogok") (map :from (get @msgs "gislene"))))
@@ -45,9 +46,9 @@
        (Thread/sleep 250) 
        (post channels users conn1 "Yoh!") 
        (Thread/sleep 250) 
-       (is (= (list "Hello, friends!" "@gislene love you" "Bye, gislene." "Yoh!") (map :message (get @msgs "diogok")))) 
-       (is (= (list "Hello, friends!" "@gislene love you") (map :message (get @msgs "gislene") ))) 
-       (is (= (list "Hello, friends!" "Bye, gislene." "Yoh!") (map :message (get @msgs "girlaine") )))
+       (is (= (list "Hello, friends!" "@gislene love you" "Yoh!") (map :message (get @msgs "diogok")))) 
+       (is (= (list "Hello, friends!" "@gislene love you") (map :message (get @msgs "gislene")))) 
+       (is (= (list "Hello, friends!" "Yoh!") (map :message (get @msgs "girlaine"))))
        (command channels users conn1 {:command "users"}) 
        (Thread/sleep 250) 
        (is (= (list "girlaine" "diogok") (:users (peek (get @msgs "diogok"))))) 
