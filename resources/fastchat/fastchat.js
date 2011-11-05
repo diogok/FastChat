@@ -129,7 +129,6 @@ var fastchat = (function() {
         for(var k in opts) {
             chat.opts[k] = opts[k];
         }
-        
         var link = document.createElement("link");
         link.setAttribute("rel","stylesheet");
         link.setAttribute("href","http://"+ chat.opts.server +"/fastchat.css");
@@ -138,3 +137,4 @@ var fastchat = (function() {
         chat.init();
     }
 })();
+

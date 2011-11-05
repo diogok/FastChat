@@ -1,16 +1,14 @@
 (ns fastchat.test.server
   (:import [org.webbitserver WebSocketConnection]) 
-  (:use [clojure.data.json :only ( json-str read-json )] ) 
+  (:use [clojure.data.json :only ( json-str read-json )]) 
   (:use [fastchat.server])
   (:use [lazytest.deftest]))
 
     (defn mkconn [msgs user]
      (proxy [WebSocketConnection] []
-      (send [s] 
-       (swap! msgs 
+      (send [s] (swap! msgs 
         (fn [msgs] (if (or (= s "ok" ) (= s "bye")) msgs 
-                     (assoc msgs user (conj (get msgs user) (read-json s))) )))
-       this))) 
+                     (assoc msgs user (conj (get msgs user) (read-json s)))))) this))) 
 
     (deftest wserver
      (let [ channels (mkchannels) 
@@ -26,15 +24,11 @@
             conn3 (mkconn msgs user3)
             conn4 (mkconn msgs user4) ]
        (connect channels users room user1 conn1) 
-       (Thread/sleep 250) 
        (connect channels users room user2 conn2) 
-       (Thread/sleep 250) 
        (connect channels users room user3 conn3) 
-       (Thread/sleep 250) 
        (connect channels users "other-room" user4 conn4) 
        (Thread/sleep 250) 
        (post channels users conn1 "Hello, friends!") 
-       (Thread/sleep 250) 
        (post channels users conn1 "@gislene love you") 
        (Thread/sleep 250) 
        (is (= (list "Hello, friends!" "@gislene love you") (map :message (get @msgs "diogok")))) 

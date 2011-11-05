@@ -12,12 +12,9 @@
            user2 "girlaine"
            msgs2 (atom []) ]
       (redis/flush-all channels) 
-      (enter channels room user0
-       (fn [msg] (swap! msgs0 conj (msg :message))))
-      (enter channels room user1
-       (fn [msg] (swap! msgs1 conj (msg :message))))
-      (enter channels room user2
-       (fn [msg] (swap! msgs2 conj (msg :message))))
+      (enter channels room user0 (fn [msg] (swap! msgs0 conj (msg :message))))
+      (enter channels room user1 (fn [msg] (swap! msgs1 conj (msg :message))))
+      (enter channels room user2 (fn [msg] (swap! msgs2 conj (msg :message))))
       (Thread/sleep 500) 
       (post channels room user0 "hello") 
       (Thread/sleep 500) 
