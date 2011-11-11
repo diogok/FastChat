@@ -40,7 +40,7 @@ The "open" option defines if the chat window will start opened or closed. Defaul
 - Wrapped in it self so it doesn't get in your way.
 - You can roll your own using your server to keep it closer.
 - Allow interop with your custom system using it's simple protocol.
-- Volatil, keeps nothing.
+- Small lived history when user come backs
 - Just works!
     
 ## Roll your own
