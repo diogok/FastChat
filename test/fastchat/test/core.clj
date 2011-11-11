@@ -11,7 +11,7 @@
            msgs1 (atom [])
            user2 "girlaine"
            msgs2 (atom []) ]
-      (redis/flush-all channels) 
+      (redis/flush-all (redis/init channels )) 
       (enter channels room user0 (fn [msg] (swap! msgs0 conj (msg :message))))
       (enter channels room user1 (fn [msg] (swap! msgs1 conj (msg :message))))
       (enter channels room user2 (fn [msg] (swap! msgs2 conj (msg :message))))

@@ -4,7 +4,7 @@
 
     (defn channels [] 
      "Create the pubsub channels"
-     (redis/init)) 
+     {}) 
 
     (defn handler [user fun ch message]
       "Handle msgs on channel"
@@ -15,12 +15,12 @@
     (defn enter [db room user fun]
      "User join room on channels, fun will be called on new messages"
       (let [ch [(str "channel:" room) (str "channel:" room ":" user)]]
-        (future (redis/subscribe (redis/init) ch (partial handler user fun))))
-      (redis/sadd db (str "users:" room) user))
+        (future (redis/subscribe (redis/init db) ch (partial handler user fun))))
+      (redis/sadd (redis/init db) (str "users:" room) user))
 
     (defn do-post [db room msg]
       "Raw post"
-      (redis/publish db (str "channel:" room) (json-str msg))) 
+      (redis/publish (redis/init db)  (str "channel:" room) (json-str msg))) 
 
     (defn post [db room user msg]
      "Post msg from user at room in channels"
@@ -36,10 +36,10 @@
 
     (defn online-users [db room]
      "Return users online on room"
-      (redis/smembers db (str "users:" room)))
+      (redis/smembers (redis/init db) (str "users:" room)))
 
     (defn leave [db room user]
      "Makes user leave room"
-     (redis/publish db (str "channel:" room ":" user) (json-str {:type "leave"})) 
-     (redis/srem db (str "users:" room) user))
+     (redis/publish (redis/init db) (str "channel:" room ":" user) (json-str {:type "leave"})) 
+     (redis/srem (redis/init db) (str "users:" room) user))
 
