@@ -25,17 +25,27 @@
       ([db room to]
        (let [histories (redis/keys db (str "history:" room ":" to ":*"))
              destiny   (str "history:" room ":" to)]
-        (if-not (nil? histories)
+        (if (nil? histories)
+          (redis/del db [destiny]) 
           (redis/zunionstore db destiny histories)) 
         (map read-json (redis/zrange db destiny 0 50))))
       ([db room from to]
        (map read-json (redis/zrange db 
                        (str "history:" room ":" to ":" from) 0 50 )))) 
 
+    (defn clear-history
+      "Clear chat history"
+      ([db room to]
+       (let [histories (redis/keys db (str "history:" room ":" to ":*"))]
+         (if-not (nil? histories) (redis/del db histories))))
+      ([db room from to] 
+       (redis/del db [(str "history:" room ":" to ":" from)]))) 
+
     (defn handler [user fun ch message]
       "Handle msgs on channel"
       (let [msg (read-json message)]
-        (if (= (msg :type) "leave") (.unsubscribe ch)
+        (if (= (msg :type) "leave")
+          (.unsubscribe ch)
           (fun msg)))) 
 
     (defn enter [db room user fun]

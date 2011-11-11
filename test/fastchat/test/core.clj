@@ -4,7 +4,8 @@
  (:use [lazytest.deftest]))
 
     (deftest corecore
-     (let [channels (channels) , room "123"
+     (let [channels (channels)
+           room "123"
            user0 "diogok"
            msgs0 (atom [])
            user1 "gislene"
@@ -36,5 +37,9 @@
       (is (= (list "hello" "@diogok hello you!") (map :message (get-history channels room user0 user1)))) 
       (is (= (list "hello" "Yoh!") (map :message (get-history channels room user2)))) 
       (is (= (list ) (map :message (get-history channels room user1 user2)))) 
+      (clear-history channels room user2) 
+      (is (= (list ) (map :message (get-history channels room user2)))) 
+      (clear-history channels room user1 user0) 
+      (is (= (list "hello" "Yoh!") (map :message (get-history channels room user0)))) 
        )) 
 
