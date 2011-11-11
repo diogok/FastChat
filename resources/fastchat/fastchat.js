@@ -8,7 +8,8 @@ var fastchat = (function() {
             input: null,
             close: null,
             users: null,
-            messages: null
+            messages: null,
+            clear: null
         },
         opts: {
             server: "67.23.230.58:8081",
@@ -91,6 +92,10 @@ var fastchat = (function() {
                 chat.opts.open = false;
             }
         },
+        clear: function() {
+            chat.elements.messages.innerHTML = "";
+            chat.ws.send(JSON.stringify({type:"command", command: "clear"}));
+        },
         scroll: function(){
             var ul = chat.elements.messages;
             var listHeight = 0;
@@ -115,8 +120,15 @@ var fastchat = (function() {
             top.setAttribute("id","x-fastchat-top");
 
             var button = document.createElement("button");
+            button.setAttribute("id","x-fastchat-close");
             button.addEventListener('click', chat.toggle,false);
             chat.elements.close = button;
+
+            var button2 = document.createElement("button");
+            button2.setAttribute("id","x-fastchat-clear");
+            button2.innerHTML = "Clear";
+            button2.addEventListener('click', chat.clear,false);
+            chat.elements.clear = button;
 
             var ul = document.createElement("ul");
             ul.setAttribute("id","x-fastchat-chat");
@@ -132,6 +144,7 @@ var fastchat = (function() {
             chat.elements.input = input;
 
             top.appendChild(button);
+            top.appendChild(button2);
             root.appendChild(top);
             root.appendChild(ul);
             root.appendChild(ul2);

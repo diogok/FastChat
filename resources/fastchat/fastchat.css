@@ -22,19 +22,24 @@
 #x-fastchat #x-fastchat-top {
     width: 100%;
     background-color: #3B5998;
-    height: 20px;
+    height: 22px;
 }
 
-#x-fastchat button {
+#x-fastchat #x-fastchat-close {
     float: right;
-    bordeR: none;
-    padding: 0;
     margin: 0;
-    width: 20px;
-    height: 19px;
     font-family: Verdana;
     color: #888;
-    font-size: 8px;
+    font-size: 12px;
+}
+
+#x-fastchat #x-fastchat-clear {
+    float: right;
+    margin: 0;
+    margin-right: 8px;
+    font-family: Verdana;
+    color: #888;
+    font-size: 12px;
 }
 
 #x-fastchat.x-fastchat-closed button {
