@@ -1,45 +1,80 @@
 (ns fastchat.core
- (:use fastchat.pubsub))
+ (:require [clj-redis.client :as redis]) 
+ (:use [clojure.data.json :only (json-str read-json)]))
 
     (defn channels [] 
      "Create the pubsub channels"
-     {:channels (mkchannels) :rooms (atom {})}) 
+     (redis/init)) 
 
-    (defn enter [channels room user fun]
+    (defn online-users [db room]
+     "Return users online on room"
+      (redis/smembers db (str "users:" room)))
+
+    (defn add-to-history 
+      "Add msg to history"
+      ([db room msg] 
+       (dorun (for [user (online-users db room)] 
+        (add-to-history db room (msg :from) user msg))))
+      ([db room from to msg]
+       (let [history (str "history:" room ":" to ":" from)]
+        (redis/zadd db history (msg :timestamp) (json-str msg)) 
+        (redis/expire db history (* 7 24 60 60)))))
+
+    (defn get-history
+      "Get msg history"
+      ([db room to]
+       (let [histories (redis/keys db (str "history:" room ":" to ":*"))
+             destiny   (str "history:" room ":" to)]
+        (if (nil? histories)
+          (redis/del db [destiny]) 
+          (redis/zunionstore db destiny histories)) 
+        (map read-json (redis/zrange db destiny 0 50))))
+      ([db room from to]
+       (map read-json (redis/zrange db 
+                       (str "history:" room ":" to ":" from) 0 50 )))) 
+
+    (defn clear-history
+      "Clear chat history"
+      ([db room to]
+       (let [histories (redis/keys db (str "history:" room ":" to ":*"))]
+         (if-not (nil? histories) (redis/del db histories))))
+      ([db room from to] 
+       (redis/del db [(str "history:" room ":" to ":" from)]))) 
+
+    (defn handler [user fun ch message]
+      "Handle msgs on channel"
+      (let [msg (read-json message)]
+        (if (= (msg :type) "leave")
+          (.unsubscribe ch)
+          (fun msg)))) 
+
+    (defn enter [db room user fun]
      "User join room on channels, fun will be called on new messages"
-     (if (nil? (get @(channels :rooms) room))
-      (swap! (channels :rooms) assoc room (atom {}))) 
-     (swap! (get @(channels :rooms) room) 
-      assoc user {:fun fun :user user :room room}) 
-     (listen! (channels :channels) room fun) 
-     (listen! (channels :channels) (str room ":" user) fun)) 
+      (let [ch [(str "channel:" room) (str "channel:" room ":" user)]]
+        (future (redis/subscribe (redis/init) ch (partial handler user fun))))
+      (redis/sadd db (str "users:" room) user)
+      (dorun (for [msg (get-history db room user)] (fun msg))))
 
-    (defn do-post [channels room msg]
-     "Raw post"
-     (send! (channels :channels) room msg)) 
+    (defn leave [db room user]
+     "Makes user leave room"
+     (redis/publish db (str "channel:" room ":" user) (json-str {:type "leave"})) 
+     (redis/srem db (str "users:" room) user))
 
-    (defn post [channels room user msg]
+    (defn do-post [db room msg]
+      "Raw post"
+      (redis/publish db  (str "channel:" room) (json-str msg))) 
+
+    (defn post [db room user msg]
      "Post msg from user at room in channels"
       (let [message {:from user
                      :type "message"
                      :message msg
-                     :timestamp (/ ( System/currentTimeMillis) 1000)}] 
+                     :timestamp (int (/ ( System/currentTimeMillis) 1000))}] 
       (if (.startsWith msg "@")
        (let [user2 (.substring msg 1 (.indexOf msg " "))]
-        (do-post channels (str room ":" user )
-            (assoc message :type "private")) 
-        (do-post channels (str room ":" user2) 
-            (assoc message :type "private")))
-       (do-post channels  room message))))
-
-    (defn online-users [channels room]
-     "Return users online on room"
-     (keys @(get @(channels :rooms) room))) 
-
-    (defn leave [channels room user]
-     "Makes user leave room"
-     (let [fun (get-in @(get @(channels :rooms) room) [user :fun])] 
-      (swap! (get @(channels :rooms) room) dissoc user) 
-      (leave! (channels :channels) room fun) 
-      (leave! (channels :channels) (str room ":" user) fun)))
+        (do-post db (str room ":" user) (assoc message :type "private")) 
+        (add-to-history db room user user2 message)
+        (do-post db (str room ":" user2) (assoc message :type "private"))
+        (add-to-history db room user2 user message))
+       (do (do-post db room message) (add-to-history db room message)))))
 

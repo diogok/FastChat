@@ -20,12 +20,14 @@
       (chat/post channels room user message))) 
 
     (defn command [channels users conn message]
-     "Ansewer a command"
+     "Answer a command"
+    (let [user (get-in @users [conn :user])
+         room (get-in @users [conn :room])] 
      (if (= (message :command) "users")
-     (let [user (get-in @users [conn :user])
-           room (get-in @users [conn :room])] 
-      (chat/do-post channels (str room ":" user)
-       {:type "users" :users (chat/online-users channels room)}))))
+       (chat/do-post channels (str room ":" user)
+        {:type "users" :users (chat/online-users channels room)}))
+     (if (= (message :command) "clear")
+       (chat/clear-history channels room user))))
 
     (defn leave [channels users conn]
      "User for conn leaves the room"
