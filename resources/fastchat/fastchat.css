@@ -3,8 +3,8 @@
     bottom: 0;
     left: 0;
     padding: 0;
-    margin: 0 3%;
-    width: 94%;
+    margin: 0 82%;
+    width: 210px;
     border: 1px solid #3B5998;
     border-bottom: none;
     z-index: 9999999;
@@ -15,78 +15,32 @@
 
 #x-fastchat.x-fastchat-closed {
     height: 20px;
-    width: 50px;
+    width: 48px;
     margin: 0 94%;
 }
 
-#x-fastchat #x-fastchat-top {
+#x-fastchat .x-fastchat-top {
     width: 100%;
     background-color: #3B5998;
     height: 22px;
 }
 
-#x-fastchat #x-fastchat-close {
+#x-fastchat .x-fastchat-hide {
     float: right;
     margin: 0;
     font-family: Verdana;
     color: #888;
     font-size: 12px;
-}
-
-#x-fastchat #x-fastchat-clear {
-    float: right;
-    margin: 0;
-    margin-right: 8px;
-    font-family: Verdana;
-    color: #888;
-    font-size: 12px;
-}
-
-#x-fastchat.x-fastchat-closed button {
-    margin-top: 0;
-    width: 50px;
-}
-
-#x-fastchat ul#x-fastchat-chat {
-    float: left;
-    text-align: left;
-    list-style: none;
-    height: 150px;
-    margin: 0;
-    padding: 0;
-    width: 80%;
-    overflow-y: scroll;
-    overflow-x: hidden;
-    background-color: #FFF;
-}
-
-#x-fastchat.x-fastchat-closed ul#x-fastchat-chat {
-    display: none;
-}
-
-#x-fastchat ul#x-fastchat-chat li {
-    font-size: 12px;
-    font-family: Verdana;
-    color: #333;
-    padding-left: 5px;
-    margin-top: 4px;
-}
-
-#x-fastchat ul#x-fastchat-chat li .x-fastchat-from {
-    color: #666;
-    font-style: italic;
-    text-transform: capitalize;
 }
 
 #x-fastchat ul#x-fastchat-users {
-    float: right;
     margin: 0;
     padding: 0;
-    width: 20%;
+    width: 200;
     overflow-y: scroll;
     overflow-x: hidden;
     background-color: #FFF;
-    height: 150px;
+    height: 350px;
 }
 
 #x-fastchat.x-fastchat-closed ul#x-fastchat-users {
@@ -111,8 +65,80 @@
     border: none;
 }
 
-#x-fastchat input {
-    width: 78%;
+.x-fastchat-window {
+    position: fixed;
+    float: right;
+    right: 0;
+    bottom: 0;
+    padding: 0;
+    width: 210px;
+    border: 1px solid #3B5998;
+    border-bottom: none;
+    z-index: 9999999;
+    background-color: #3B5998;
+    background-color: #eee;
+    font-family: Verdana;
+    height: 372px;
+}
+
+.x-fastchat-window.x-fastchat-closed {
+    height: 20px;
+    overflow: hidden;
+}
+
+
+.x-fastchat-window .x-fastchat-top {
+    width: 205px;
+    background-color: #3B5998;
+    height: 22px;
+    font-family: Verdana;
+    color: #fff;
+    font-size: 14px;
+    text-transform: capitalize;
+    padding-left: 5px;
+}
+
+.x-fastchat-window .x-fastchat-hide {
+    float: right;
+    margin: 0;
+    font-family: Verdana;
+    color: #888;
+    font-size: 12px;
+}
+
+.x-fastchat-window ul.x-fastchat-chat {
+    float: left;
+    text-align: left;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 315px;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    background-color: #FFF;
+}
+
+.x-fastchat-window.x-fastchat-closed ul.x-fastchat-chat {
+    display: none;
+}
+
+.x-fastchat-window ul.x-fastchat-chat li {
+    font-size: 12px;
+    font-family: Verdana;
+    color: #333;
+    padding-left: 5px;
+    margin-top: 4px;
+}
+
+.x-fastchat-window ul.x-fastchat-chat li .x-fastchat-from {
+    color: #666;
+    font-style: italic;
+    text-transform: capitalize;
+}
+
+.x-fastchat-window input {
+    width: 190px ;
     border: 1px solid #3B5998;
     margin: 0;
     margin-top: 4px;
@@ -124,7 +150,6 @@
     color: #666;
 }
 
-#x-fastchat.x-fastchat-closed input {
-    display: none;
+.x-fastchat-window.x-fastchat-closed input {
 }
 
