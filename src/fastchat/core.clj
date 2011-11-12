@@ -17,8 +17,7 @@
         (add-to-history db room (msg :from) user msg))))
       ([db room from to msg]
        (let [history (str "history:" room ":" to ":" from)]
-        (redis/zadd db history (msg :timestamp) (json-str msg)) 
-         )))
+        (redis/zadd db history (msg :timestamp) (json-str msg)) )))
 
     (defn get-history
       "Get msg history"
@@ -71,10 +70,11 @@
                      :message msg
                      :timestamp (int (/ ( System/currentTimeMillis) 1000))}] 
       (if (.startsWith msg "@")
-       (let [user2 (.substring msg 1 (.indexOf msg " "))]
-        (do-post db (str room ":" user) (assoc message :type "private")) 
+       (let [user2 (.substring msg 1 (.indexOf msg " "))
+             message (assoc message :type "private" :to user2)]
+        (do-post db (str room ":" user) message) 
         (add-to-history db room user user2 message)
-        (do-post db (str room ":" user2) (assoc message :type "private"))
+        (do-post db (str room ":" user2) message)
         (add-to-history db room user2 user message))
        (do (do-post db room message) (add-to-history db room message)))))
 
