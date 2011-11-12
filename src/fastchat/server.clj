@@ -10,7 +10,8 @@
     (defn connect [channels users room user conn]
      "Connect user to room at channels using connection"
      (swap! users assoc conn {:user user :room room})
-     (chat/enter channels room user (fn [msg] (.send conn (json-str msg))))
+     (chat/enter channels room user
+      (fn [msg] (.send conn (json-str msg))))
      (.send conn "ok"))
 
     (defn post [channels users conn message]
@@ -27,7 +28,9 @@
        (chat/do-post channels (str room ":" user)
         {:type "users" :users (chat/online-users channels room)}))
      (if (= (message :command) "clear")
-       (chat/clear-history channels room user))))
+       (if-not (nil? (message :from))
+         (chat/clear-history channels room (message :from) user) 
+         (chat/clear-history channels room user)))))
 
     (defn leave [channels users conn]
      "User for conn leaves the room"
