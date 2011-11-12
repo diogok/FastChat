@@ -18,7 +18,7 @@
       ([db room from to msg]
        (let [history (str "history:" room ":" to ":" from)]
         (redis/zadd db history (msg :timestamp) (json-str msg)) 
-        (redis/expire db history (* 7 24 60 60)))))
+         )))
 
     (defn get-history
       "Get msg history"
