@@ -6,7 +6,7 @@ FastChat is a simple and concise chat widget for your website or web application
 
 To use it in your page you just need to load the fastchat widget from the server:
 
-    <script src="http://67.23.230.58:8081" type="text/javascript"></script>
+    <script src="http://67.23.230.58:8081/fastchat.js" type="text/javascript"></script>
 
 And them initialize it:
     
@@ -17,7 +17,7 @@ And them initialize it:
 You can also pass in an object of config, all options below:
 
     <script type="text/javascript">
-        fastchat({ server: "http://you.fastchat.server.com",
+        fastchat({ server: "http://your.fastchat.server.com",
                    room: "A room to join",
                    user: "Username",
                    open: false
@@ -41,20 +41,20 @@ The "open" option defines if the chat window will start opened or closed. Defaul
 - You can roll your own using your server to keep it closer.
 - Allow interop with your custom system using it's simple protocol.
 - Small lived history when user come backs
+- A chat window per user
 - Just works!
     
 ## Roll your own
 
-You can download current "jar" of the fastchat to run on your server, all you need is Java 6 or greater(I guess) and redis.
+You can download the current "jar" of the fastchat to run on your server, all you need is Java 6 or greater(I guess) and redis.
 
 To run it just invoke the jar passing the port to bind:
 
     $ java -jar fastchat.jar 8081
 
-It will bind to all addresses available on the machine. The "chat" websocket interface is at "http://localhost:8081/chat" and the widget is at "http://localhost/fastchat.js".
+It will bind to all addresses available on the machine. The "chat" websocket interface is at "http://localhost:8081/chat" and the widget is at "http://localhost/fastchat.js". A test page is available at "http://localhost:80801/index.html".
 
 ## Others
 
 Don't know, just to keep it around. More to come!
-
 
