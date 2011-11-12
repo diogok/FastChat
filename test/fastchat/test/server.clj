@@ -1,5 +1,6 @@
 (ns fastchat.test.server
   (:import [org.webbitserver WebSocketConnection]) 
+  (:require [clj-redis.client :as redis]) 
   (:use [clojure.data.json :only ( json-str read-json )]) 
   (:use [fastchat.server])
   (:use [lazytest.deftest]))
@@ -9,10 +10,8 @@
       (send [s] (swap! msgs 
         (fn [msgs] (if (or (= s "ok" ) (= s "bye")) msgs 
                      (assoc msgs user (conj (get msgs user) (read-json s)))))) this))) 
-
-    (deftest wserver
-     (let [ channels (mkchannels) 
-            users    (atom {}) 
+  (deftest wserver
+     (let [ channels (mkchannels) users    (atom {}) 
             room  "test"
             user1 "diogok"
             user2 "gislene"
@@ -23,6 +22,7 @@
             conn2 (mkconn msgs user2) 
             conn3 (mkconn msgs user3)
             conn4 (mkconn msgs user4) ]
+       (redis/flush-all (redis/init)) 
        (connect channels users room user1 conn1) 
        (connect channels users room user2 conn2) 
        (connect channels users room user3 conn3) 
