@@ -38,8 +38,13 @@ var fastchat = (function() {
                 chat.windows[user].open = true;
             }
         },
+        closeChat: function(user) {
+            document.body.removeChild(chat.windows[user].root);
+            chat.windows[user].attached = false;
+            chat.reorder();
+        },
         createChat: function(user) {
-            var window = {open: true};
+            var window = {open: true, attached: true};
 
             var root = document.createElement("div");
             root.setAttribute("class","x-fastchat-window");
@@ -85,9 +90,8 @@ var fastchat = (function() {
             return window;
         },
         openChat: function(user){
-            if(typeof chat.windows[user] != "object") {
-                chat.windows[user] = chat.createChat(user);
-            }
+            if(typeof chat.windows[user] != "object")  chat.windows[user] = chat.createChat(user);
+            if(!chat.windows[user].attached)  document.body.appendChild(chat.windows[user].root);
             if(!chat.windows[user].open) chat.toggle(user);
             chat.reorder();
         },
@@ -218,6 +222,7 @@ var fastchat = (function() {
         for(var k in opts) {
             chat.opts[k] = opts[k];
         }
+
         var link = document.createElement("link");
         link.setAttribute("rel","stylesheet");
         link.setAttribute("href","http://"+ chat.opts.server +"/fastchat.css");
