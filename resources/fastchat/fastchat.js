@@ -99,7 +99,7 @@ var fastchat = (function() {
             chat.scroll(user);
         },
         clear: function(user) {
-            chat.elements.messages.innerHTML = "";
+            chat.windows[user].messages.innerHTML = "";
             chat.ws.send(JSON.stringify({type:"command", command: "clear", from: user}));
         },
         scroll: function(user){
