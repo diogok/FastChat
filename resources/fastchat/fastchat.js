@@ -23,8 +23,10 @@ var fastchat = (function() {
         reorder: function() {
             var c = 1;
             for(var user in chat.windows) {
-                chat.windows[user].root.style.marginRight = ( 250*c ) + "px";
-                c++;
+                if(chat.windows[user].attached) {
+                    chat.windows[user].root.style.marginRight = ( 250*c ) + "px";
+                    c++;
+                }
             }
         },
         toggle: function(user) {
@@ -91,7 +93,10 @@ var fastchat = (function() {
         },
         openChat: function(user){
             if(typeof chat.windows[user] != "object")  chat.windows[user] = chat.createChat(user);
-            if(!chat.windows[user].attached)  document.body.appendChild(chat.windows[user].root);
+            if(!chat.windows[user].attached) {
+                document.body.appendChild(chat.windows[user].root);
+                chat.windows[user].attached = true;
+            }
             if(!chat.windows[user].open) chat.toggle(user);
             chat.reorder();
         },
