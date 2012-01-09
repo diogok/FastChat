@@ -32,7 +32,7 @@ var fastchat = (function() {
         toggle: function(user) {
             if(chat.windows[user].open) {
                 chat.windows[user].root.setAttribute("class",'x-fastchat-window x-fastchat-closed');
-                chat.windows[user].hide.innerHTML = "-";
+                chat.windows[user].hide.innerHTML = "+";
                 chat.windows[user].open = false;
             } else {
                 chat.windows[user].root.setAttribute("class",'x-fastchat-window');
@@ -185,7 +185,7 @@ var fastchat = (function() {
         toggleChat: function() {
             if(!chat.opts.open) {
                 chat.elements.root.setAttribute("class",'x-fastchat-closed');
-                chat.elements.hide.innerHTML = "Open";
+                chat.elements.hide.innerHTML = "Chat";
                 chat.opts.open = true;
             } else {
                 chat.elements.root.removeAttribute("class");
