@@ -48,11 +48,11 @@ The "open" option defines if the chat window will start opened or closed. Defaul
     
 ## Roll your own
 
-You can download the current [server of the fastchat](http://github.com/downloads/diogok/FastChat/fastchat-0.1.jar) to run on your server, all you need is Java 6 or greater(I guess) and [redis](http://github.com/antirez/redis).
+You can download the current [server of the fastchat](http://github.com/downloads/diogok/FastChat/fastchat-0.2-standalone.jar) to run on your server, all you need is Java 6 or greater(I guess) and [redis](http://github.com/antirez/redis).
 
 To run it just invoke the jar passing the port to bind:
 
-    $ java -jar fastchat-0.1.jar 8081
+    $ java -jar fastchat-0.2-standalone.jar 8081
 
 It will bind to all addresses available on the machine. The "chat" websocket interface is at "http://localhost:8081/chat" and the widget is at "http://localhost/fastchat.js". A test page is available at "http://localhost:8081/index.html".
 
