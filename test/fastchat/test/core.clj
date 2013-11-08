@@ -71,7 +71,29 @@
     (clear)))
 
 (fact "Private messaging"
-    (clear))
+  (let [msgs-max (atom [])
+        msgs-diogok (atom [])
+        msgs-lolcat (atom [])]
+    (enter "room1" "diogok"
+      (fn [msg] (swap! msgs-diogok conj msg)))
+    (enter "room1" "max"
+      (fn [msg] (swap! msgs-max conj msg)))
+    (enter "room1" "lolcat"
+      (fn [msg] (swap! msgs-lolcat conj msg)))
+
+    (post "room1" "diogok" "hello!")
+    (post "room1" "max" "hi!")
+    (post "room1" "max" "@diogok i hate lolcat")
+
+    (count @msgs-max) => 3
+    (count @msgs-diogok) => 3
+    (count @msgs-lolcat) => 2
+
+    (leave "room1" "diogok")
+    (leave "room1" "max")
+    (leave "room1" "lolcat")
+
+    (clear)))
 
 (fact "Chat history"
   (clear))
