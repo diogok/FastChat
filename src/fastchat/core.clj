@@ -16,15 +16,15 @@
   [& body] 
   `(redis/wcar conn ~@body))
 
-(defn- read-json 
+(defn read-json 
   "Create data from a json string"
   [json] (read-str json :key-fn keyword))
 
-(defn- write-json
+(defn write-json
   "Create a json string from data"
   [obj] (write-str obj))
 
-(defn- mkey
+(defn mkey
   "Creates the proper redis key, including prefix"
   [& args] (apply str (:prefix @conn) ":" (interpose ":" args)))
 
@@ -38,7 +38,7 @@
  "Return users online on room"
   (db (redis/smembers (mkey "users" room))))
 
-(defn- add-to-history 
+(defn add-to-history 
   "Add msg to history"
   ([room msg] 
    (dorun 
