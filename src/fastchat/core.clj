@@ -1,80 +1,130 @@
 (ns fastchat.core
- (:require [clj-redis.client :as redis]) 
- (:use [clojure.data.json :only (json-str read-json)]))
+ (:require [taoensso.carmine :as redis])
+ (:use [clojure.data.json :only (read-str write-str)]))
 
-    (defn channels [] 
-     "Create the pubsub channels"
-     (redis/init)) 
+(def conn (atom {:pool {} :spec {:host "127.0.0.1" :port 6379} :prefix "fastchat"}))
+(def listeners (ref {}))
 
-    (defn online-users [db room]
-     "Return users online on room"
-      (redis/smembers db (str "users:" room)))
+(defn connect
+  "To start the chat we need to connect to proper redis database"
+  ([host] (connect host 6379))
+  ([host port] (connect host port "fastchat"))
+  ([host port prefix] (swap! conn (fn [_] {:pool {} :spec {:host host :port port} :prefix prefix}))))
 
-    (defn add-to-history 
-      "Add msg to history"
-      ([db room msg] 
-       (dorun (for [user (online-users db room)] 
-        (add-to-history db room (msg :from) user msg))))
-      ([db room from to msg]
-       (let [history (str "history:" room ":" to ":" from)]
-        (redis/zadd db history (msg :timestamp) (json-str msg)) )))
+(defmacro db 
+  "Run the commands in current connection"
+  [& body] 
+  `(redis/wcar conn ~@body))
 
-    (defn get-history
-      "Get msg history"
-      ([db room to]
-       (let [histories (redis/keys db (str "history:" room ":" to ":*"))
-             destiny   (str "history:" room ":" to)]
-        (if (nil? histories)
-          (redis/del db [destiny]) 
-          (redis/zunionstore db destiny histories)) 
-        (map read-json (redis/zrange db destiny 0 50))))
-      ([db room from to]
-       (map read-json (redis/zrange db 
-                       (str "history:" room ":" to ":" from) 0 50 )))) 
+(defn- read-json 
+  "Create data from a json string"
+  [json] (read-str json :key-fn keyword))
 
-    (defn clear-history
-      "Clear chat history"
-      ([db room to]
-       (let [histories (redis/keys db (str "history:" room ":" to ":*"))]
-         (if-not (nil? histories) (redis/del db histories))))
-      ([db room from to] 
-       (redis/del db [(str "history:" room ":" to ":" from)]))) 
+(defn- write-json
+  "Create a json string from data"
+  [obj] (write-str obj))
 
-    (defn handler [user fun ch message]
-      "Handle msgs on channel"
-      (let [msg (read-json message)]
-        (if (= (msg :type) "leave")
-          (.unsubscribe ch)
-          (fun msg)))) 
+(defn- mkey
+  "Creates the proper redis key, including prefix"
+  [& args] (apply str (:prefix @conn) ":" (interpose ":" args)))
 
-    (defn enter [db room user fun]
-     "User join room on channels, fun will be called on new messages"
-      (let [ch [(str "channel:" room) (str "channel:" room ":" user)]]
-        (future (redis/subscribe (redis/init) ch (partial handler user fun))))
-      (redis/sadd db (str "users:" room) user)
-      (dorun (for [msg (get-history db room user)] (fun msg))))
+(defn clear
+  ""
+  [] (let [keys (db (redis/keys (mkey "*")))]
+      (dorun (for[key keys]
+       (db (redis/del key))))))
 
-    (defn leave [db room user]
-     "Makes user leave room"
-     (redis/publish db (str "channel:" room ":" user) (json-str {:type "leave"})) 
-     (redis/srem db (str "users:" room) user))
+(defn online-users [room]
+ "Return users online on room"
+  (db (redis/smembers (mkey "users" room))))
 
-    (defn do-post [db room msg]
-      "Raw post"
-      (redis/publish db  (str "channel:" room) (json-str msg))) 
+(defn- add-to-history 
+  "Add msg to history"
+  ([room msg] 
+   (dorun 
+     (for [user (online-users room)] 
+      (add-to-history room (msg :from) user msg))))
+  ([room from to msg]
+   (let [history (mkey "history" room to from)]
+    (redis/zadd history (msg :timestamp) (write-json msg)))))
 
-    (defn post [db room user msg]
-     "Post msg from user at room in channels"
-      (let [message {:from user
-                     :type "message"
-                     :message msg
-                     :timestamp (int (/ ( System/currentTimeMillis) 1000))}] 
-      (if (.startsWith msg "@")
-       (let [user2 (.substring msg 1 (.indexOf msg " "))
-             message (assoc message :type "private" :to user2)]
-        (do-post db (str room ":" user) message) 
-        (add-to-history db room user user2 message)
-        (do-post db (str room ":" user2) message)
-        (add-to-history db room user2 user message))
-       (do (do-post db room message) (add-to-history db room message)))))
+(defn get-history
+  "Get msg history"
+  ([room to]
+   (let [histories (db (redis/keys (mkey "history" room to "*")))
+         destiny   (mkey "history" room to)]
+    (if (empty? histories)
+      (db (redis/del destiny))
+      (db (redis/zunionstore* destiny histories)))
+    (map read-json (db (redis/zrange destiny 0 50)))))
+  ([room from to]
+   (map read-json (db (redis/zrange (mkey "history" room to from) 0 50)))))
+
+(defn clear-history
+  "Clear chat history"
+  ([room to]
+   (let [histories (db (redis/keys (mkey "history" room to "*")))]
+     (if-not (nil? histories) (db (redis/del histories)))))
+  ([room from to] 
+   (db (redis/del [(mkey "history:" room to from)]))))
+
+(defn handler
+  ""
+  [fun]
+  (fn [[type channel message]]
+   (if (= type "message")
+    (let [msg (read-json message)]
+     (fun msg)))))
+
+(defn- listen
+  ""
+  [room user fun]
+   (redis/with-new-pubsub-listener (:spec @conn)
+     {(mkey "channel" room) (handler fun)
+      (mkey "channel" room user) (handler fun)}
+     (redis/subscribe (mkey "channel" room))
+     (redis/subscribe (mkey "channel" room user))))
+
+(defn enter
+ "The user enter a room, and start the chat"
+  [room user fun]
+  (let [listener (listen room user fun)]
+   (dosync
+    (commute listeners (fn [listeners] (assoc listeners (str room user) listener))))
+    (db (redis/sadd (mkey "users" room) user))
+    (dorun (for [msg (db (get-history room user))] (fun msg)))))
+
+(defn leave [room user]
+ "Makes user leave room"
+ (redis/with-open-listener (get @listeners (str room user))
+   (redis/unsubscribe (mkey "channel" room))
+   (redis/unsubscribe (mkey "channel" room user)))
+ (redis/close-listener (get @listeners (str room user )))
+ (db (redis/srem (mkey "users" room) user))
+ (dosync 
+   (commute listeners (fn [listeners] (dissoc listeners (str room user))))))
+
+(defn do-post
+  "Raw post"
+  ([room msg] (redis/publish (mkey "channel" room) (write-json msg)))
+  ([room user msg] (redis/publish (mkey "channel" room user) (write-json msg))))
+
+(defn post 
+ "Post msg from user at room in channels"
+ [room user msg]
+  (let [message {:from user
+                 :type "message"
+                 :message msg
+                 :timestamp (int (/ ( System/currentTimeMillis) 1000))}] 
+  (if (.startsWith msg "@")
+   (let [user2   (.substring msg 1 (.indexOf msg " "))
+         message (assoc message :type "private" :to user2)]
+    (db
+      (do-post room user message) 
+      (add-to-history room user user2 message)
+      (do-post room user2 message)
+      (add-to-history room user2 user message)))
+    (db
+      (do-post room message)
+      (add-to-history room message)))))
 
