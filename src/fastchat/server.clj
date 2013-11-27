@@ -1,6 +1,5 @@
 (ns fastchat.server
-  (:use [ring.middleware.reload :only [wrap-reload]]
-        [compojure.core :only [defroutes GET]]
+  (:use [compojure.core :only [defroutes GET]]
         [compojure.route :only [resources]]
         [compojure.handler :only [site]]
         [ring.util.response :only [redirect]]
@@ -10,7 +9,7 @@
 
 (def users (ref {}))
 
-(defmulti message (fn [_ msg] (:type msg)))
+(defmulti message (fn [_ msg]  (keyword (:type msg) )) :default :echo)
 
 (defmethod message :connect [channel message]
   (let [user (:user message)
@@ -20,16 +19,16 @@
         (fn [users] (assoc users channel {:user user :room room}))))
     (chat/enter room user
       (fn [msg] (send! channel (write-str msg))))
-    (send! channel {:type "welcome"})))
+    (send! channel (write-str {:type "welcome"} ))))
 
 (defmethod message :message [channel message]
  (let [user (get-in @users [channel :user])
        room (get-in @users [channel :room])] 
-  (chat/post room user message))) 
+  (chat/post room user (:message message )))) 
 
 (defmethod message :users [channel message]
  (let [room (get-in @users [channel :room])] 
-   (send! channel {:type "users" :users (chat/online-users room)})))
+   (send! channel (write-str {:type "users" :users (chat/online-users room)} ))))
 
 (defmethod message :clear [channel message]
  (let [user (get-in @users [channel :user])
@@ -44,6 +43,10 @@
    (chat/leave room user)
    (send! channel (write-str {:type "bye"}))))
 
+(defmethod message :echo [channel message]
+  (println "echo: " message)
+  (send! channel (write-str message)))
+
 (defn handler [request]
   (with-channel request channel
     (on-close channel (fn [_] (message channel {:type "leave"})))
@@ -55,7 +58,7 @@
   (resources "/"))
 
 (defn -main [& args] 
-  (let [handler (wrap-reload (site #'app))
+  (let [handler (site #'app)
         port    (or (System/getenv "PORT") "9090")]
     (println "running on" port)
     (run-server handler {:port (Integer/parseInt port)})))
