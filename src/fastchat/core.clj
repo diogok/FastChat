@@ -7,6 +7,7 @@
 
 (defn connect
   "To start the chat we need to connect to proper redis database"
+  ([] (connect "localhost"))
   ([host] (connect host 6379))
   ([host port] (connect host port "fastchat"))
   ([host port prefix] (swap! conn (fn [_] {:pool {} :spec {:host host :port port} :prefix prefix}))))
@@ -36,7 +37,7 @@
 
 (defn online-users [room]
  "Return users online on room"
-  (db (redis/smembers (mkey "users" room))))
+  (sort (db (redis/smembers (mkey "users" room)))))
 
 (defn add-to-history 
   "Add msg to history"
