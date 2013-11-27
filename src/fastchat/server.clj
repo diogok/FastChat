@@ -1,65 +1,62 @@
 (ns fastchat.server
- (:import [org.webbitserver WebServer WebServers WebSocketHandler]
-          [org.webbitserver.handler StaticFileHandler EmbeddedResourceHandler]) 
- (:require [fastchat.core :as chat]) 
- (:use [clojure.data.json :only (json-str read-json)]) 
- (:gen-class))
+  (:use [ring.middleware.reload :only [wrap-reload]]
+        [compojure.core :only [defroutes GET]]
+        [compojure.route :only [resources]]
+        [compojure.handler :only [site]]
+        [ring.util.response :only [redirect]]
+        [clojure.data.json :only (read-str write-str)]
+        [org.httpkit.server :only [run-server send! with-channel on-close on-receive]])
+  (:require [fastchat.core :as chat]))
 
-    (def mkchannels chat/channels) 
+(def users (ref {}))
 
-    (defn connect [channels users room user conn]
-     "Connect user to room at channels using connection"
-     (swap! users assoc conn {:user user :room room})
-     (chat/enter channels room user
-      (fn [msg] (.send conn (json-str msg))))
-     (.send conn "ok"))
+(defmulti message (fn [_ msg] (:type msg)))
 
-    (defn post [channels users conn message]
-     "Post message from user to room at channels"
-     (let [user (get-in @users [conn :user])
-           room (get-in @users [conn :room])] 
-      (chat/post channels room user message))) 
+(defmethod message :connect [channel message]
+  (let [user (:user message)
+        room (:room message)]
+    (dosync 
+      (commute users 
+        (fn [users] (assoc users channel {:user user :room room}))))
+    (chat/enter room user
+      (fn [msg] (send! channel (write-str msg))))
+    (send! channel {:type "welcome"})))
 
-    (defn command [channels users conn message]
-     "Answer a command"
-    (let [user (get-in @users [conn :user])
-         room (get-in @users [conn :room])] 
-     (if (= (message :command) "users")
-       (chat/do-post channels (str room ":" user)
-        {:type "users" :users (chat/online-users channels room)}))
-     (if (= (message :command) "clear")
-       (if-not (nil? (message :from))
-         (chat/clear-history channels room (message :from) user) 
-         (chat/clear-history channels room user)))))
+(defmethod message :message [channel message]
+ (let [user (get-in @users [channel :user])
+       room (get-in @users [channel :room])] 
+  (chat/post room user message))) 
 
-    (defn leave [channels users conn]
-     "User for conn leaves the room"
-     (let [user (get-in @users [conn :user])
-           room (get-in @users [conn :room])]
-       (chat/leave channels room user)
-       (.send conn "bye")))
+(defmethod message :users [channel message]
+ (let [room (get-in @users [channel :room])] 
+   (send! channel {:type "users" :users (chat/online-users room)})))
 
-    (defn message [channels users conn j]
-     "Parse message j and delegates"
-      (let [msg (read-json j)]
-        (if (= (msg :type) "connect") 
-         (connect channels users (msg :room) (msg :user) conn)) 
-        (if (= (msg :type) "message")
-         (post channels users conn (msg :message)))
-        (if (= (msg :type) "command")
-         (command channels users conn msg))))
+(defmethod message :clear [channel message]
+ (let [user (get-in @users [channel :user])
+       room (get-in @users [channel :room])]
+   (if-not (nil? (message :from))
+     (chat/clear-history room (message :from) user) 
+     (chat/clear-history room user))))
 
-    (defn handler [channels users] 
-     "Create proper Websocket handler for channels"
-       (proxy [WebSocketHandler] []
-        (onOpen [c] nil)
-        (onClose [c] (leave channels users c))
-        (onMessage [c j] (message channels users c j))))
+(defmethod message :leave [channel message]
+ (let [user (get-in @users [channel :user])
+       room (get-in @users [channel :room])]
+   (chat/leave room user)
+   (send! channel (write-str {:type "bye"}))))
 
-    (defn -main [& args]
-     "Start websocket server"
-     (let [server (WebServers/createWebServer (Integer/parseInt (first args)))]
-      (.add server "/chat" (handler (mkchannels) (atom {}))) 
-      (.add server (EmbeddedResourceHandler. "fastchat")) 
-      (println (.getUri (.start server))) server))
+(defn handler [request]
+  (with-channel request channel
+    (on-close channel (fn [_] (message channel {:type "leave"})))
+    (on-receive channel (fn [data] (message channel (read-str data :key-fn keyword))))))
+
+(defroutes app 
+  (GET "/" [] (redirect "index.html"))
+  (GET "/chat" [] handler)
+  (resources "/"))
+
+(defn -main [& args] 
+  (let [handler (wrap-reload (site #'app))
+        port    (or (System/getenv "PORT") "9090")]
+    (println "running on" port)
+    (run-server handler {:port (Integer/parseInt port)})))
 
