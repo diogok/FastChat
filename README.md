@@ -1,14 +1,14 @@
 # FastChat
 
-FastChat is a simple and concise chat widget for your website or web application.
+FastChat is a simple, fast and concise chat widget for your website or web application.
 
-[Take a look!](http://67.23.230.58:8081/index.html)
+Icons by [awesome glyphicons](http://glyphicons.com/).
 
 ## Usage
 
 To use it in your page you just need to load the fastchat widget from the server:
 
-    <script src="http://67.23.230.58:8081/fastchat.js" type="text/javascript"></script>
+    <script src="http://localhost:9090/fastchat.js" type="text/javascript"></script>
 
 And them initialize it:
     
@@ -19,7 +19,8 @@ And them initialize it:
 You can also pass in an object of config, all options below:
 
     <script type="text/javascript">
-        fastchat({ server: "http://your.fastchat.server.com",
+        fastchat({ 
+                   server: "http://your.fastchat.server.com",
                    room: "A room to join",
                    user: "Username",
                    open: false
@@ -36,7 +37,7 @@ The "open" option defines if the chat window will start opened or closed. Defaul
 
 ## Features
 
-- Small widget so it loads fast (no dependency).
+- Small widget so it loads fast (no dependency, not even jquery).
 - Simple websocket protocol, so it has low load and can keep many clients connected.
 - Can customize using just css (look at default css).
 - Wrapped in it self so it doesn't get in your way.
@@ -48,18 +49,18 @@ The "open" option defines if the chat window will start opened or closed. Defaul
     
 ## Roll your own
 
-You can download the current [server of the fastchat](http://github.com/downloads/diogok/FastChat/fastchat-0.2-standalone.jar) to run on your server, all you need is Java 6 or greater(I guess) and [redis](http://github.com/antirez/redis).
+You can download the current [server of the fastchat](http://github.com/downloads/diogok/FastChat/fastchat-1.0beta1-standalone.jar) to run on your server, all you need is Java 7 and [redis](http://github.com/antirez/redis).
 
 To run it just invoke the jar passing the port to bind:
 
-    $ java -jar fastchat-0.2-standalone.jar 8081
+    $ java -jar -DPORT=9090 fastchat-1.0beta1-standalone.jar
 
-It will bind to all addresses available on the machine. The "chat" websocket interface is at "http://localhost:8081/chat" and the widget is at "http://localhost/fastchat.js". A test page is available at "http://localhost:8081/index.html".
+It will bind to all addresses available on the machine. The "chat" websocket interface is at "http://localhost:9090/chat" and the widget is at "http://localhost/fastchat.js". A test page is available at "http://localhost:9090/index.html".
 
 ## TODO
 
-- Refactor CSS
-- Write way more tests
+- Stop pooling online users
 - Automate interface tests
 - Allow redis config on server
+- Add single big widget
 
