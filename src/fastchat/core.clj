@@ -2,15 +2,29 @@
  (:require [taoensso.carmine :as redis])
  (:use [clojure.data.json :only (read-str write-str)]))
 
-(def conn (atom {:pool {} :spec {:host "127.0.0.1" :port 6379} :prefix "fastchat"}))
+(def conn (atom {:pool {} 
+                 :spec {:host (or (System/getProperty "REDIS_HOST")
+                                  (System/getenv "REDIS_HOST")
+                                  (System/getenv "REDIS_PORT_6379_TCP_ADDR") 
+                                  "127.0.0.1" ) 
+                        :port (Integer/parseInt
+                                (or (System/getProperty "REDIS_PORT") 
+                                    (System/getenv "REDIS_PORT") 
+                                    (System/getenv "REDIS_PORT_6379_TCP_PORT") 
+                                    "6379"))} 
+                 :prefix (or (System/getProperty "REDIS_PREFIX")
+                             (System/getenv "REDIS_PREFIX") 
+                             "fastchat")}))
 (def listeners (ref {}))
 
 (defn connect
   "To start the chat we need to connect to proper redis database"
-  ([] (connect "localhost"))
-  ([host] (connect host 6379))
-  ([host port] (connect host port "fastchat"))
-  ([host port prefix] (swap! conn (fn [_] {:pool {} :spec {:host host :port port} :prefix prefix}))))
+  ([] (connect (get-in @conn [:spec :host])))
+  ([host] (connect host (get-in @conn [:spec :port])))
+  ([host port] (connect host port (get @conn :prefix)))
+  ([host port prefix]
+   (println (str "redis " host ":" port "/" prefix))
+   (swap! conn (fn [_] {:pool {} :spec {:host host :port port} :prefix prefix}))))
 
 (defmacro db 
   "Run the commands in current connection"

@@ -68,6 +68,8 @@
 
     (leave "room1" "diogok")
     (leave "room1" "max")
+    (leave "room2" "diogok")
+    (leave "room2" "max")
     (clear)))
 
 (fact "Private messaging"

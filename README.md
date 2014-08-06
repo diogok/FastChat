@@ -1,6 +1,6 @@
 # FastChat
 
-FastChat is a simple, fast and concise chat widget for your website or web application.
+FastChat is a simple, fast and concise chat and messenger widget for your website or web application.
 
 Icons by [awesome glyphicons](http://glyphicons.com/).
 
@@ -49,18 +49,54 @@ The "open" option defines if the chat window will start opened or closed. Defaul
     
 ## Roll your own
 
-You can download the current [server of the fastchat](http://github.com/downloads/diogok/FastChat/fastchat-1.0beta1-standalone.jar) to run on your server, all you need is Java 7 and [redis](http://github.com/antirez/redis).
+### On Docker
 
-To run it just invoke the jar passing the port to bind:
+Run standalone on ephemeral redis:
 
-    $ java -jar -DPORT=9090 fastchat-1.0beta1-standalone.jar
+    $ docker run -d -P -t diogok/fastchat
+
+Or, have a redis server running and link to fastchat:
+
+    $ docker run -d -P --name redis -t redis
+    $ docker run -d -P --name fastchat --link redis:redis -t diogok/fastchat
+
+Or, use a custom connection to redis:
+
+    $ docker run -d -P --name fastchat -e REDIS_HOST="localhost" -e REDIS_PORT="6379" -e REDIS_PREFIX="instance1" -t diogok/fastchat
+
+### Standalone mode
+
+You can download the current [release of the fastchat](http://github.com/diogok/FastChat/releases/latest) to run on your server, all you need is Java 7 and [redis](http://github.com/antirez/redis).
+
+To run it just invoke the jar:
+
+    $ java -jar fastchat-2.0.0-standalone.jar
+
+You can set the port and connections to redis:
+
+    $ java -jar -DPORT=9090 -DREDIS_HOST=localhost -DREDIS_PORT=6379 -DREDIS_PREFIX=fastchat1 fastchat-2.0.0-standalone.jar
+
 
 It will bind to all addresses available on the machine. The "chat" websocket interface is at "http://localhost:9090/chat" and the widget is at "http://localhost/fastchat.js". A test page is available at "http://localhost:9090/index.html".
+
+## Development
+
+You can use vagrant or setup java 7, lein and redis by your self.
+
+Tasks:
+
+    lein run # run the server, auto reload parts of the app
+    lein midje # run the tests
+    lein midje :autotest # keep the tests runing
+    lein uberjar # generate the deploy artefact
 
 ## TODO
 
 - Stop pooling online users
 - Automate interface tests
-- Allow redis config on server
-- Add single big widget
+- Add single big widget option
+
+## License
+
+Distribuited under the Eclipse Public License.
 

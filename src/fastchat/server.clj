@@ -5,7 +5,8 @@
         [ring.util.response :only [redirect]]
         [clojure.data.json :only (read-str write-str)]
         [org.httpkit.server :only [run-server send! with-channel on-close on-receive]])
-  (:require [fastchat.core :as chat]))
+  (:require [fastchat.core :as chat])
+  (:gen-class))
 
 (def users (ref {}))
 
@@ -59,7 +60,8 @@
 
 (defn -main [& args] 
   (let [handler (site #'app)
-        port    (or (System/getenv "PORT") "9090")]
+        port    (or (System/getProperty "PORT") (System/getenv "PORT") "9090")]
     (println "running on" port)
+    (chat/connect)
     (run-server handler {:port (Integer/parseInt port)})))
 
