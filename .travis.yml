@@ -4,11 +4,3 @@ script: lein2 midje
 after_script: lein2 uberjar
 services:
     - redis-server
-deploy:
-    provider: releases
-    api_key:
-    secure: A7pS34AzsH3aN0z7JcALXfZYBsRfRUauxPNKLqc3ElyEg+ht3G7JABznXxU9SZtt31Ckc7Fk11vh/Zv4pnse7fbNDijv0NZ5SLi82ntMs3kKPF3ZvnEeCmd3BQICYgh5GTIiFfAYg+FJ3pcBu+k1VMxO9cDja5jzQiYRo+7z4Co=
-    file: target/fastchat-2.0.0-standalone.jar
-    skip_cleanup: true
-    on:
-        repo: diogok/FastChat
