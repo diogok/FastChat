@@ -1,5 +1,7 @@
 # FastChat
 
+[![Build Status](https://travis-ci.org/diogok/FastChat.png)](https://travis-ci.org/diogok/FastChat)
+
 FastChat is a simple, fast and concise chat and messenger widget for your website or web application.
 
 Icons by [awesome glyphicons](http://glyphicons.com/).
